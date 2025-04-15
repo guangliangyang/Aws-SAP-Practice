@@ -16,7 +16,8 @@ A web-based **AWS Certification Practice Exam System** built with HTML, CSS, and
 
 ## 🖼️ Interface Preview
 
-<img src="screenshots/exam-main.png" width="600" alt="Exam Main Interface">
+![image](https://github.com/user-attachments/assets/e65aaec1-52c6-4ccd-af4d-a83b155ce8b4)
+
 
 ## 🗂️ Project Structure
 
@@ -26,8 +27,7 @@ aws-exam-simulator/
 ├── exam.html                # Exam interface
 ├── questions.js             # Question bank
 ├── style.css                # CSS styling
-├── README.md                # Project documentation
-└── screenshots/             # UI screenshots (optional)
+
 ```
 
 ## 📦 How to Use
