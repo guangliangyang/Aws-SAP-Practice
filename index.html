@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS 模拟考试系统</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>AWS 认证模拟考试系统</h1>
+
+        <div class="stats">
+            <h2>考试统计</h2>
+            <p>总题数: <span id="total-questions">0</span></p>
+            <p>错题数: <span id="wrong-questions">0</span></p>
+            <p>上次正确率: <span id="last-score">0</span>%</p>
+        </div>
+
+        <div class="actions">
+            <button id="full-exam" class="btn">完整模拟考试</button>
+            <button id="wrong-exam" class="btn">错题练习</button>
+            <button id="clear-wrong" class="btn">清空错题记录</button>
+        </div>
+
+        <div class="import-export">
+            <h3>错题管理</h3>
+            <textarea id="wrong-list" placeholder="输入错题编号，用逗号分隔"></textarea>
+            <div>
+                <button id="import-wrong" class="btn">导入错题</button>
+                <button id="export-wrong" class="btn">导出错题</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script>
+        // 初始化显示统计数据
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+
+            // 按钮事件
+            document.getElementById('full-exam').addEventListener('click', () => {
+                localStorage.setItem('examMode', 'full');
+                window.location.href = 'exam.html';
+            });
+
+            document.getElementById('wrong-exam').addEventListener('click', () => {
+                const wrongQuestions = getWrongQuestions();
+                if (wrongQuestions.length === 0) {
+                    alert('没有错题记录！');
+                    return;
+                }
+                localStorage.setItem('examMode', 'wrong');
+                window.location.href = 'exam.html';
+            });
+
+            document.getElementById('clear-wrong').addEventListener('click', () => {
+                if (confirm('确定要清空所有错题记录吗？')) {
+                    localStorage.removeItem('wrongQuestions');
+                    updateStats();
+                    alert('已清空错题记录');
+                }
+            });
+
+            document.getElementById('import-wrong').addEventListener('click', () => {
+                const input = document.getElementById('wrong-list').value.trim();
+                if (!input) {
+                    alert('请输入要导入的错题编号');
+                    return;
+                }
+
+                const numbers = input.split(',').map(num => num.trim()).filter(num => num);
+                const validNumbers = numbers.filter(num => questions.some(q => q.question_number === num));
+
+                if (validNumbers.length === 0) {
+                    alert('没有找到有效的题目编号');
+                    return;
+                }
+
+                const existingWrong = getWrongQuestions();
+                const newWrong = [...new Set([...existingWrong, ...validNumbers])];
+                localStorage.setItem('wrongQuestions', JSON.stringify(newWrong));
+
+                updateStats();
+                alert(`成功导入 ${validNumbers.length} 个错题`);
+                document.getElementById('wrong-list').value = '';
+            });
+
+            document.getElementById('export-wrong').addEventListener('click', () => {
+                const wrongQuestions = getWrongQuestions();
+                if (wrongQuestions.length === 0) {
+                    alert('没有错题可导出');
+                    return;
+                }
+
+                document.getElementById('wrong-list').value = wrongQuestions.join(', ');
+                alert('错题已复制到文本框，可手动保存');
+            });
+        });
+
+        function updateStats() {
+            document.getElementById('total-questions').textContent = questions.length;
+
+            const wrongQuestions = getWrongQuestions();
+            document.getElementById('wrong-questions').textContent = wrongQuestions.length;
+
+            const lastScore = localStorage.getItem('lastScore');
+            if (lastScore) {
+                document.getElementById('last-score').textContent = lastScore;
+            }
+        }
+
+        function getWrongQuestions() {
+            const wrong = localStorage.getItem('wrongQuestions');
+            return wrong ? JSON.parse(wrong) : [];
+        }
+    </script>
+</body>
+</html>

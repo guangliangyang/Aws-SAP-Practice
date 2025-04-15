@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS 模拟考试</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .correct-answer {
+            background-color: #d4edda;
+            border: 1px solid #28a745;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        #question-number {
+            display: none; /* 默认隐藏题号 */
+        }
+
+        .top-buttons {
+            margin-bottom: 10px;
+        }
+
+        .top-buttons button {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container exam-container">
+        <header>
+            <h1>AWS 模拟考试</h1>
+            <div class="exam-info">
+                <span id="question-count">问题 1/50</span>
+                <span id="timer">时间: 00:00</span>
+            </div>
+        </header>
+
+        <!-- 新增：顶部功能按钮 -->
+        <div class="top-buttons">
+            <button id="show-answer-btn" class="btn">显示正确答案</button>
+            <button id="toggle-qnum-btn" class="btn">显示题号</button>
+        </div>
+
+        <div class="question-area">
+            <h2 id="question-number">Question #1</h2>
+            <div id="question-text" class="question-text"></div>
+
+            <div id="options" class="options">
+                <!-- 选项将通过JavaScript动态生成 -->
+            </div>
+        </div>
+
+        <div class="navigation">
+            <button id="prev-btn" class="btn">上一题</button>
+            <button id="next-btn" class="btn">下一题</button>
+            <button id="submit-btn" class="btn submit-btn">提交答案</button>
+        </div>
+
+        <div id="result-modal" class="modal">
+            <div class="modal-content">
+                <h2>考试结果</h2>
+                <p id="result-text"></p>
+                <button id="back-home" class="btn">返回首页</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const examMode = localStorage.getItem('examMode') || 'full';
+            let allQuestions = [];
+
+            // 根据考试模式加载题目
+            if (examMode === 'wrong') {
+                const wrongQuestions = JSON.parse(localStorage.getItem('wrongQuestions') || []);
+                allQuestions = questions.filter(q => wrongQuestions.includes(q.question_number));
+            } else {
+                allQuestions = [...questions];
+            }
+
+
+            // 打乱题目顺序
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+            shuffle(allQuestions);
+
+            if (allQuestions.length === 0) {
+                alert('没有可用题目！');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // 考试状态
+            const state = {
+                currentIndex: 0,
+                answers: new Array(allQuestions.length).fill(null),
+                startTime: new Date().getTime(),
+                submitted: false
+            };
+
+            // DOM元素
+            const questionCountEl = document.getElementById('question-count');
+            const questionNumberEl = document.getElementById('question-number');
+            const questionTextEl = document.getElementById('question-text');
+            const optionsEl = document.getElementById('options');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            const timerEl = document.getElementById('timer');
+            const resultModal = document.getElementById('result-modal');
+            const resultTextEl = document.getElementById('result-text');
+            const backHomeBtn = document.getElementById('back-home');
+            const showAnswerBtn = document.getElementById('show-answer-btn');
+            const toggleQnumBtn = document.getElementById('toggle-qnum-btn');
+
+            // 初始化
+            renderQuestion();
+            startTimer();
+
+            // 事件监听
+            prevBtn.addEventListener('click', goToPrevQuestion);
+            nextBtn.addEventListener('click', goToNextQuestion);
+            submitBtn.addEventListener('click', submitExam);
+            backHomeBtn.addEventListener('click', () => {
+                window.location.href = 'index.html';
+            });
+
+            // 新增：显示正确答案功能
+            showAnswerBtn.addEventListener('click', function () {
+                const question = allQuestions[state.currentIndex];
+                const correct = question.correct_answer;
+                document.querySelectorAll('input[name="answer"]').forEach(input => {
+                    if (correct.includes(input.value)) {
+                        input.parentElement.classList.add('correct-answer');
+                    } else {
+                        input.parentElement.classList.remove('correct-answer');
+                    }
+                });
+            });
+
+            // 新增：切换题号显示
+            toggleQnumBtn.addEventListener('click', function () {
+                const isVisible = questionNumberEl.style.display !== 'none';
+                questionNumberEl.style.display = isVisible ? 'none' : 'block';
+                toggleQnumBtn.textContent = isVisible ? '显示题号' : '隐藏题号';
+            });
+            function renderQuestion() {
+                const question = allQuestions[state.currentIndex];
+
+                questionCountEl.textContent = `问题 ${state.currentIndex + 1}/${allQuestions.length}`;
+                questionNumberEl.textContent = `Question #${question.question_number}`;
+                questionTextEl.textContent = question.stem;
+
+                // 清空选项
+                optionsEl.innerHTML = '';
+
+                // 生成选项
+                Object.entries(question.options).forEach(([key, value]) => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'option';
+
+                    const input = document.createElement('input');
+                    input.type = question.correct_answer.length > 1 ? 'checkbox' : 'radio';
+                    input.name = 'answer';
+                    input.value = key;
+                    input.id = `option-${key}`;
+
+                    // 如果已经选择过，恢复选择状态
+                    if (state.answers[state.currentIndex] &&
+                        state.answers[state.currentIndex].includes(key)) {
+                        input.checked = true;
+                    }
+
+                    const label = document.createElement('label');
+                    label.htmlFor = `option-${key}`;
+                    label.textContent = `${key}. ${value}`;
+
+                    optionDiv.appendChild(input);
+                    optionDiv.appendChild(label);
+                    optionsEl.appendChild(optionDiv);
+                });
+
+                // 更新按钮状态
+                prevBtn.disabled = state.currentIndex === 0;
+                nextBtn.disabled = state.currentIndex === allQuestions.length - 1;
+
+                submitBtn.style.display = state.currentIndex === allQuestions.length - 1 ? 'inline-block' : 'none';
+
+                // 清除之前高亮的答案
+                document.querySelectorAll('.correct-answer').forEach(el => el.classList.remove('correct-answer'));
+            }
+
+            // 保存当前答案
+            function saveAnswer() {
+                const selectedOptions = [];
+                document.querySelectorAll('input[name="answer"]:checked').forEach(input => {
+                    selectedOptions.push(input.value);
+                });
+
+                state.answers[state.currentIndex] = selectedOptions.length > 0 ? selectedOptions : null;
+            }
+
+            // 上一题
+            function goToPrevQuestion() {
+                saveAnswer();
+                state.currentIndex--;
+                renderQuestion();
+            }
+
+            // 下一题
+            function goToNextQuestion() {
+                saveAnswer();
+                state.currentIndex++;
+                renderQuestion();
+            }
+
+            // 计时器
+            function startTimer() {
+                updateTimer();
+                setInterval(updateTimer, 1000);
+            }
+
+            function updateTimer() {
+                const now = new Date().getTime();
+                const elapsed = Math.floor((now - state.startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                timerEl.textContent = `时间: ${minutes}:${seconds}`;
+            }
+
+            // 提交考试
+            function submitExam() {
+                saveAnswer();
+                state.submitted = true;
+
+                // 计算得分
+                let correctCount = 0;
+                const wrongQuestions = [];
+
+                allQuestions.forEach((question, index) => {
+                    const userAnswer = state.answers[index] || [];
+                    const correctAnswer = question.correct_answer;
+
+                    // 比较答案 (顺序不重要)
+                    const isCorrect = userAnswer.length === correctAnswer.length &&
+                                      userAnswer.every(opt => correctAnswer.includes(opt));
+
+                    if (isCorrect) {
+                        correctCount++;
+                    } else {
+                        wrongQuestions.push(question.question_number);
+                    }
+                });
+
+                // 更新错题记录
+                const existingWrong = JSON.parse(localStorage.getItem('wrongQuestions') || '[]');
+                const newWrong = [...new Set([...existingWrong, ...wrongQuestions])];
+                localStorage.setItem('wrongQuestions', JSON.stringify(newWrong));
+
+                // 保存本次成绩
+                const score = Math.round((correctCount / allQuestions.length) * 100);
+                localStorage.setItem('lastScore', score);
+
+                // 显示结果
+                resultTextEl.innerHTML = `
+                    <p>总题数: ${allQuestions.length}</p>
+                    <p>答对: ${correctCount}</p>
+                    <p>答错: ${allQuestions.length - correctCount}</p>
+                    <p>正确率: ${score}%</p>
+                    <p>错题编号: ${wrongQuestions.join(', ')}</p>
+                `;
+
+                resultModal.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
