@@ -446,7 +446,7 @@ const questions = [
       "D": "Create an Application Load Balancer (ALB) in front of the API. Move the EC2 instances to private subnets in the VPC. Add the EC2\ninstances as targets for the ALB. Update the Route 53 record to point to the ALB."
     },
     "correct_answer": [
-      "A"
+      "D"
     ]
   },
   {
@@ -6549,7 +6549,19 @@ const questions = [
   },
   {
     "question_number": "483",
-    "stem": "A company is migrating infrastructure for its massive multiplayer game to AWS. The game’s application features a leaderboard where players can\nsee rankings in real time. The leaderboard requires microsecond reads and single-digit-millisecond write latencies. The datasets are single-digit\nterabytes in size and must be available to accept writes in less than a minute if a primary node failure occurs.\nThe company needs a solution in which data can persist for further analytical processing through a data pipeline.\nWhich solution will meet these requirements with the LEAST operational overhead?\nB. Create an Amazon ROS database with a read replica. Configure the application to point writes to the writer endpoint. Configure the\napplication to point reads to the reader endpoint.\nC. Create an Amazon MemoryDB for Redis cluster in Muit-AZ mode Configure the application to interact with the primary node.\nD. Create multiple Redis nodes on Amazon EC2 instances that are spread across multiple Availability Zones. Configure backups to Amazon\nS3.\nCorrect Answer:C\nCommunity vote distribution\nC (75%) B (25%)淘宝店铺名：小齐语料库\nQuestion #484 Topic 1\nA company is running several applications in the AWS Cloud. The applications are specific to separate business units in the company. The\ncompany is running the components of the applications in several AWS accounts that are in an organization in AWS Organizations.\nEvery cloud resource in the company’s organization has a tag that is named BusinessUnit. Every tag already has the appropriate value of the\nbusiness unit name.\nThe company needs to allocate its cloud costs to different business units. The company also needs to visualize the cloud costs for each business\nunit.\nWhich solution will meet these requirements?",
+    "stem": "A company is migrating infrastructure for its massive multiplayer game to AWS. The game’s application features a leaderboard where players can\nsee rankings in real time. The leaderboard requires microsecond reads and single-digit-millisecond write latencies. The datasets are single-digit\nterabytes in size and must be available to accept writes in less than a minute if a primary node failure occurs.\nThe company needs a solution in which data can persist for further analytical processing through a data pipeline.\nWhich solution will meet these requirements with the LEAST operational overhead?\n" ,
+    "options": {
+      "B": "Create an Amazon ROS database with a read replica. Configure the application to point writes to the writer endpoint. Configure the application to point reads to the reader endpoint.\n" ,
+        "C": "Create an Amazon MemoryDB for Redis cluster in Muit-AZ mode Configure the application to interact with the primary node.\n" ,
+        "D": "Create multiple Redis nodes on Amazon EC2 instances that are spread across multiple Availability Zones. Configure backups to Amazon\nS3." ,
+         },
+    "correct_answer": [
+      "C"
+    ]
+  },
+  {
+    "question_number": "484",
+    "stem": "A company is running several applications in the AWS Cloud. The applications are specific to separate business units in the company. The\ncompany is running the components of the applications in several AWS accounts that are in an organization in AWS Organizations.\nEvery cloud resource in the company’s organization has a tag that is named BusinessUnit. Every tag already has the appropriate value of the\nbusiness unit name.\nThe company needs to allocate its cloud costs to different business units. The company also needs to visualize the cloud costs for each business\nunit.\nWhich solution will meet these requirements?",
     "options": {
       "A": "In the organization's management account, create a cost allocation tag that is named BusinessUnit. Also in the management account,\ncreate an Amazon S3 bucket and an AWS Cost and Usage Report (AWS CUR). Configure the S3 bucket as the destination for the AWS CUR.\nFrom the management account, query the AWS CUR data by using Amazon Athena. Use Amazon QuickSight for visualization.",
       "B": "In each member account, create a cost allocation tag that is named BusinessUnit. In the organization’s management account, create an\nAmazon S3 bucket and an AWS Cost and Usage Report (AWS CUR). Configure the S3 bucket as the destination for the AWS CUR. Create an\nAmazon CloudWatch dashboard for visualization.",

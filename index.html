@@ -25,7 +25,7 @@
 
         <div class="import-export">
             <h3>错题管理</h3>
-            <textarea id="wrong-list" placeholder="输入错题编号，用逗号分隔"></textarea>
+            <textarea id="wrong-list" placeholder="输入错题编号，格式如下: 1, 3, 5-8, 10-12"></textarea>
             <div>
                 <button id="import-wrong" class="btn">导入错题</button>
                 <button id="export-wrong" class="btn">导出错题</button>
@@ -70,8 +70,25 @@
                     return;
                 }
 
-                const numbers = input.split(',').map(num => num.trim()).filter(num => num);
-                const validNumbers = numbers.filter(num => questions.some(q => q.question_number === num));
+                const segments = input.split(',').map(s => s.trim()).filter(s => s);
+                const expandedNumbers = [];
+
+                for (const seg of segments) {
+                    if (/^\d+-\d+$/.test(seg)) {
+                        const [start, end] = seg.split('-').map(Number);
+                        if (start <= end) {
+                            for (let i = start; i <= end; i++) {
+                                expandedNumbers.push(i.toString());
+                            }
+                        }
+                    } else if (/^\d+$/.test(seg)) {
+                        expandedNumbers.push(seg);
+                    }
+                }
+
+                const validNumbers = expandedNumbers.filter(num =>
+                    questions.some(q => q.question_number === num)
+                );
 
                 if (validNumbers.length === 0) {
                     alert('没有找到有效的题目编号');
@@ -86,6 +103,7 @@
                 alert(`成功导入 ${validNumbers.length} 个错题`);
                 document.getElementById('wrong-list').value = '';
             });
+
 
             document.getElementById('export-wrong').addEventListener('click', () => {
                 const wrongQuestions = getWrongQuestions();
