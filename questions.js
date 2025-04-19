@@ -77,7 +77,7 @@ const questions = [
       "E": "In Account B, set the permissions of User_DataProcessor to the following:"
     },
     "correct_answer": [
-      "C"
+      "C","D"
     ]
   },
   {
@@ -2240,7 +2240,7 @@ const questions = [
       "D": "Configure AWS DataSync to connect to an Amazon EC2 instance. Configure a task to synchronize the generated files to and from Amazon\nS3."
     },
     "correct_answer": [
-      "B"
+      "C"
     ]
   },
   {
