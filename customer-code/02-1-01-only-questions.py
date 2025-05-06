@@ -13,6 +13,9 @@ class AWSExamQuestionParser:
         with pdfplumber.open(self.pdf_path) as pdf:
             for page in pdf.pages:
                 full_text += page.extract_text() or ''
+        # 替换无效字符，并移除所有"\nMost Voted"标记
+        full_text = full_text.replace('\u0000', 'f')
+        full_text = full_text.replace('\nMost Voted', '')
         return full_text
 
     def parse_questions(self):
@@ -84,7 +87,7 @@ class AWSExamQuestionParser:
 
 
 def main():
-    pdf_path = 'SAP-C02.pdf'  # 替换为您的实际PDF路径
+    pdf_path = 'MLS-C01.pdf'  # 替换为您的实际PDF路径
     parser = AWSExamQuestionParser(pdf_path)
     parser.parse_questions()
     parser.print_questions()
